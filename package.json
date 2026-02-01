@@ -1,0 +1,30 @@
+{
+  "name": "incident-autopilot",
+  "version": "1.0.0",
+  "description": "AI-powered incident response agent built on Elastic Agent Builder -- detects anomalies, traces root causes, and takes action autonomously.",
+  "type": "module",
+  "scripts": {
+    "seed": "node scripts/seed-data.js",
+    "setup": "node scripts/setup-agent.js && node scripts/setup-workflows.js",
+    "demo": "node scripts/demo.js",
+    "teardown": "node scripts/teardown.js",
+    "start": "npm run seed && npm run setup && npm run demo"
+  },
+  "keywords": [
+    "elasticsearch",
+    "agent-builder",
+    "incident-response",
+    "observability",
+    "ai-agent",
+    "esql"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@elastic/elasticsearch": "^9.0.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "dotenv": "^16.4.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
