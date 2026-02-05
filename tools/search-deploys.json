@@ -1,0 +1,12 @@
+{
+  "id": "search_recent_deploys",
+  "type": "index_search",
+  "name": "Search Recent Deployments",
+  "description": "Searches the deployment history index to find recent deployments that may correlate with an anomaly. Use this tool AFTER detecting an anomaly to check if a recent deployment could be the root cause. Searches deployments from the last 24 hours, sorted by most recent first. Pay special attention to deployments to the affected service with large changesets or SDK/dependency updates.",
+  "index": "deployments",
+  "query_fields": ["service", "commit_message", "changes", "deployer"],
+  "result_fields": ["@timestamp", "service", "version", "deployer", "commit_sha", "commit_message", "changes", "rollback_version", "status"],
+  "sort_field": "@timestamp",
+  "sort_order": "desc",
+  "size": 10
+}

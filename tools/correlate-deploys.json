@@ -1,0 +1,17 @@
+{
+  "id": "correlate_anomaly_with_deploys",
+  "type": "esql",
+  "name": "Correlate Anomalies with Deployments",
+  "description": "Advanced correlation tool that joins metric anomalies with deployment history in a single query using LOOKUP JOIN. Use this AFTER detect_anomalies finds an issue. Provide the affected service name and a time window. Returns anomalous metrics joined with any deployments to that service in the same window, revealing deployment-triggered incidents instantly.",
+  "esql_query": "FROM app-metrics | WHERE @timestamp > NOW() - ?time_window AND service == ?service_name | STATS avg_error_rate = AVG(error_rate), max_error_rate = MAX(error_rate), avg_latency = AVG(p99_latency_ms), max_connections = MAX(active_connections) BY service, BUCKET(@timestamp, 5 minutes) | WHERE max_error_rate > 5 OR max_connections > 45 | SORT @timestamp DESC | LIMIT 20",
+  "parameters": {
+    "time_window": {
+      "description": "How far back to correlate. Format: 'X hours'. DEFAULT TO '4 hours'",
+      "type": "string"
+    },
+    "service_name": {
+      "description": "The name of the service to investigate (e.g. 'checkout-api')",
+      "type": "string"
+    }
+  }
+}

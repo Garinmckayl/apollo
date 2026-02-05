@@ -1,0 +1,34 @@
+{
+  "id": "create_incident",
+  "type": "workflow",
+  "name": "Create Incident Report",
+  "description": "Creates a structured incident report in Elasticsearch and optionally sends a Slack notification. Use this tool LAST, after you have gathered all evidence from anomaly detection, deployment correlation, past incidents, and runbooks. Provide a complete incident summary including root cause, severity, and recommended remediation.",
+  "workflow_id": "incident-autopilot-create-incident",
+  "parameters": {
+    "title": {
+      "type": "string",
+      "description": "Short, descriptive incident title including the affected service"
+    },
+    "severity": {
+      "type": "string",
+      "description": "Incident severity: P1 (customer-facing outage), P2 (degraded service), P3 (internal/minor)",
+      "enum": ["P1", "P2", "P3"]
+    },
+    "service": {
+      "type": "string",
+      "description": "The primary affected service name"
+    },
+    "root_cause": {
+      "type": "string",
+      "description": "Detailed root cause analysis based on evidence gathered"
+    },
+    "recommended_action": {
+      "type": "string",
+      "description": "Recommended remediation steps, starting with the most urgent action"
+    },
+    "evidence_summary": {
+      "type": "string",
+      "description": "Summary of evidence: anomaly data, deployment correlation, historical patterns"
+    }
+  }
+}

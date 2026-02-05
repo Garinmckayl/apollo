@@ -1,0 +1,17 @@
+{
+  "id": "detect_anomalies",
+  "type": "esql",
+  "name": "Detect Anomalies",
+  "description": "Analyzes application metrics to detect anomalies in error rates, latency, and resource utilization. Use this tool FIRST when investigating a potential incident. Provide a lookback duration (e.g. '2 hours', '30 minutes') and a bucket interval (e.g. '5 minutes', '1 minute'). Returns services with error_rate > 5%, p99_latency > 2000ms, or connection pool saturation (>45 active connections).",
+  "esql_query": "FROM app-metrics | WHERE @timestamp > NOW() - ?lookback_duration | STATS avg_error_rate = AVG(error_rate), max_error_rate = MAX(error_rate), avg_latency = AVG(p99_latency_ms), max_latency = MAX(p99_latency_ms), avg_cpu = AVG(cpu_percent), max_cpu = MAX(cpu_percent), avg_connections = AVG(active_connections), max_connections = MAX(active_connections) BY service, BUCKET(@timestamp, ?bucket_interval) | WHERE max_error_rate > 5 OR max_latency > 2000 OR max_connections > 45 | SORT @timestamp DESC | LIMIT 50",
+  "parameters": {
+    "lookback_duration": {
+      "description": "How far back to search for anomalies. Format: 'X hours' or 'X minutes'. DEFAULT TO '2 hours'",
+      "type": "string"
+    },
+    "bucket_interval": {
+      "description": "Time bucket size for aggregation. Smaller intervals give more detail. Format: 'X minutes'. DEFAULT TO '5 minutes'",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "search_runbooks",
+  "type": "index_search",
+  "name": "Search Runbooks",
+  "description": "Searches operational runbooks for diagnosis and remediation guidance relevant to the current incident. Use this tool to find step-by-step instructions for handling specific types of incidents. Search by service name, symptom description, or category (incident-response, deployment, maintenance).",
+  "index": "runbooks",
+  "query_fields": ["title", "symptoms", "diagnosis_steps", "remediation_steps", "tags", "service"],
+  "result_fields": ["title", "service", "category", "symptoms", "diagnosis_steps", "remediation_steps", "tags"],
+  "size": 3
+}

@@ -1,0 +1,12 @@
+{
+  "id": "analyze_error_logs",
+  "type": "esql",
+  "description": "Analyzes error logs to identify frequent errors by service, message, and status code. Use after detect_anomalies to understand WHAT is failing.",
+  "esql_query": "FROM app-logs | WHERE @timestamp > NOW() - ?lookback_duration AND level == \"ERROR\" | STATS error_count = COUNT(*), avg_latency = AVG(latency_ms) BY service, message, status_code | SORT error_count DESC | LIMIT 20",
+  "parameters": {
+    "lookback_duration": {
+      "description": "How far back to analyze errors. Format: X hours or X minutes. DEFAULT TO 1 hour",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "search_past_incidents",
+  "type": "index_search",
+  "name": "Search Past Incidents",
+  "description": "Searches the historical incident database to find past incidents with similar symptoms, root causes, or affected services. Use this tool to identify recurring patterns and leverage past resolutions. Search by service name, error patterns, or trigger type to find the most relevant historical context.",
+  "index": "incidents",
+  "query_fields": ["title", "root_cause", "resolution", "service", "tags"],
+  "result_fields": ["@timestamp", "title", "severity", "service", "root_cause", "resolution", "duration_minutes", "triggered_by", "tags"],
+  "sort_field": "@timestamp",
+  "sort_order": "desc",
+  "size": 5
+}
