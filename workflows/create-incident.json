@@ -1,0 +1,76 @@
+{
+  "id": "incident-autopilot-create-incident",
+  "name": "Create Incident and Notify",
+  "description": "Creates an incident record in Elasticsearch and sends a Slack notification with the incident summary.",
+  "trigger": {
+    "type": "manual"
+  },
+  "steps": [
+    {
+      "id": "index_incident",
+      "type": "action",
+      "action": "elasticsearch.index",
+      "params": {
+        "index": "incidents",
+        "document": {
+          "@timestamp": "{{now}}",
+          "title": "{{trigger.params.title}}",
+          "severity": "{{trigger.params.severity}}",
+          "service": "{{trigger.params.service}}",
+          "root_cause": "{{trigger.params.root_cause}}",
+          "resolution": "{{trigger.params.recommended_action}}",
+          "duration_minutes": 0,
+          "triggered_by": "incident-autopilot-agent",
+          "status": "investigating",
+          "tags": ["auto-detected", "agent-created"]
+        }
+      }
+    },
+    {
+      "id": "notify_slack",
+      "type": "action",
+      "action": "webhook.post",
+      "params": {
+        "url": "{{env.SLACK_WEBHOOK_URL}}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "blocks": [
+            {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": "🚨 {{trigger.params.severity}} Incident Detected by Autopilot"
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*{{trigger.params.title}}*\n\n*Service:* `{{trigger.params.service}}`\n*Severity:* {{trigger.params.severity}}\n\n*Root Cause:*\n{{trigger.params.root_cause}}\n\n*Recommended Action:*\n{{trigger.params.recommended_action}}\n\n*Evidence:*\n{{trigger.params.evidence_summary}}"
+              }
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "text": { "type": "plain_text", "text": "View in Kibana" },
+                  "style": "primary",
+                  "url": "{{env.KIBANA_URL}}/app/discover"
+                },
+                {
+                  "type": "button",
+                  "text": { "type": "plain_text", "text": "Acknowledge" },
+                  "style": "danger"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "condition": "{{env.SLACK_WEBHOOK_URL != ''}}"
+    }
+  ]
+}
