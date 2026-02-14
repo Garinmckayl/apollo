@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "apollo-sre": {
+      "url": "https://mcp.doctusai.com/mcp",
+      "transport": "http"
+    }
+  }
+}
