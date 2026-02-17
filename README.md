@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>An AI-powered incident response agent built on Elastic Agent Builder that detects production anomalies, diagnoses root causes, and takes action -- creating incident records, sending Telegram/Slack alerts, and recommending rollbacks -- before your on-call engineer even wakes up.</strong>
+  <strong>Your autonomous AI SRE engineer. Apollo detects production anomalies, diagnoses root causes, executes rollbacks, creates Jira tickets, pages PagerDuty, generates postmortems, updates status pages, and alerts your team on Slack and Telegram -- all in 92 seconds, with zero human intervention.</strong>
 </p>
 
 <p align="center">
@@ -163,9 +163,9 @@ Apollo investigates and resolves this in **92 seconds** with zero human interven
 ## Project Structure
 
 ```
-incident-autopilot/
+apollo/
   agents/
-    incident-autopilot.json     # Agent definition (system prompt, 10 tool assignments)
+    incident-autopilot.json     # Agent definition (system prompt, tool assignments)
   tools/
     detect-anomalies.json       # ES|QL -- time-series anomaly detection
     analyze-errors.json         # ES|QL -- error log pattern analysis
@@ -183,11 +183,11 @@ incident-autopilot/
     demo.js                     # End-to-end demo via Converse API
     teardown.js                 # Clean up all resources
   mcp-server/
-    server.js                   # MCP server + Telegram bot + Slack bot (977 lines)
+    server.js                   # MCP server + Telegram bot + Slack bot
     package.json                # @slack/bolt, express, @modelcontextprotocol/sdk
-  docs/
-    devpost-submission.md       # Hackathon submission text
-    demo-script.md              # Demo video recording guide
+  data/
+    apollo-logo-with-text.png   # Apollo branding
+    apollo-icon-512x512.png     # Agent icon
 ```
 
 ## License
