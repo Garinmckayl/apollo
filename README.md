@@ -41,6 +41,12 @@ Apollo is a multi-tool AI agent that completes the entire incident response life
 
 **Key differentiator**: Apollo doesn't just detect -- it investigates, diagnoses, and responds. The engineer wakes up to a solved problem, not a mystery.
 
+### Apollo Detecting the Anomaly in Real-Time
+
+<p align="center">
+  <img src="data/kibana-dashboard.png" alt="Kibana Dashboard - Error Rate Spike Detection" width="800">
+</p>
+
 ## Architecture
 
 ```
