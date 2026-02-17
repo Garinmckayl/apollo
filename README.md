@@ -1,8 +1,14 @@
-# Apollo -- Autonomous AI SRE Agent
+<p align="center">
+  <img src="data/apollo-logo-with-text.png" alt="Apollo Logo" width="400">
+</p>
 
-**An AI-powered incident response agent built on Elastic Agent Builder that detects production anomalies, diagnoses root causes, and takes action -- creating incident records, sending Telegram/Slack alerts, and recommending rollbacks -- before your on-call engineer even wakes up.**
+<p align="center">
+  <strong>An AI-powered incident response agent built on Elastic Agent Builder that detects production anomalies, diagnoses root causes, and takes action -- creating incident records, sending Telegram/Slack alerts, and recommending rollbacks -- before your on-call engineer even wakes up.</strong>
+</p>
 
-Built for the [Elasticsearch Agent Builder Hackathon](https://elasticsearch.devpost.com/) on Devpost.
+<p align="center">
+  Built for the <a href="https://elasticsearch.devpost.com/">Elasticsearch Agent Builder Hackathon</a> on Devpost.
+</p>
 
 ---
 
