@@ -107,8 +107,8 @@ Apollo lives where engineers already work:
 
 ```bash
 # Clone the repo
-git clone https://github.com/doctusai/incident-autopilot.git
-cd incident-autopilot
+git clone https://github.com/Garinmckayl/apollo.git
+cd apollo
 
 # Install dependencies
 npm install
