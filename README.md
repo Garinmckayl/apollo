@@ -52,18 +52,35 @@ Apollo is a multi-tool AI agent that completes the entire incident response life
 ```
                           +-------------------------------+
                           |     Kibana Agent Builder       |
-                          |     Agent: Apollo (10 tools)   |
+                          |  Agent: Apollo (22 tools)      |
                           +---------------+---------------+
                                           |
                 +-------------------------+-------------------------+
                 |                         |                         |
-    +-----------+-----------+ +-----------+-----------+ +-----------+-------------+
-    |  3x ES|QL Tools       | |  3x Index Search      | |  4x MCP Action Tools    |
-    |  detect_anomalies     | |  search_past_incidents | |  send_telegram_alert    |
-    |  analyze_error_logs   | |  search_recent_deploys | |  send_slack_notification|
-    |  correlate_deploys    | |  search_runbooks       | |  create_incident_record |
-    |  (Elasticsearch)      | |  (Elasticsearch)       | |  recommend_rollback     |
-    +-----------------------+ +-----------------------+ +-----------+-------------+
+    +-----------+-----------+ +-----------+-----------+ +-----------+-----------------+
+    |  3x ES|QL Tools       | |  3x Index Search      | |  16x MCP Tools (via        |
+    |  detect_anomalies     | |  search_past_incidents | |  mcp.doctusai.com)         |
+    |  analyze_error_logs   | |  search_recent_deploys | |                            |
+    |  correlate_deploys    | |  search_runbooks       | |  Action (11):              |
+    |  (Elasticsearch)      | |  (Elasticsearch)       | |  send_telegram_alert       |
+    +-----------------------+ +-----------------------+ |  send_slack_notification   |
+                                                        |  create_incident_record    |
+                                                        |  recommend_rollback        |
+                                                        |  execute_rollback          |
+                                                        |  run_health_check          |
+                                                        |  create_jira_ticket        |
+                                                        |  create_pagerduty_incident |
+                                                        |  generate_postmortem       |
+                                                        |  update_status_page        |
+                                                        |  create_github_issue       |
+                                                        |                            |
+                                                        |  Read (5):                 |
+                                                        |  get_service_health        |
+                                                        |  get_recent_incidents      |
+                                                        |  get_recent_deployments    |
+                                                        |  search_error_logs         |
+                                                        |  ask_apollo                |
+                                                        +----------------------------+
                                                                     |
                                                         +-----------+-----------+
                                                         |           |           |
@@ -78,7 +95,7 @@ Apollo is a multi-tool AI agent that completes the entire incident response life
 
     +---------------------------+
     |  External MCP Clients     |
-    |  VS Code / Claude Desktop |--------> mcp.doctusai.com/mcp (9 tools)
+    |  VS Code / Claude Desktop |--------> mcp.doctusai.com/mcp (16 tools)
     |  Cursor / Any MCP Client  |
     +---------------------------+
 ```
@@ -92,16 +109,16 @@ Apollo lives where engineers already work:
 | **Kibana Agent Builder** | Full investigation UI with tool call visibility |
 | **Slack Bot** | @mention Apollo in any channel or DM directly. Responds in threads |
 | **Telegram Bot** | Two-way chat with persistent conversation threads and command shortcuts |
-| **MCP Protocol** | Connect from VS Code, Claude Desktop, Cursor -- 9 tools for read and write |
+| **MCP Protocol** | Connect from VS Code, Claude Desktop, Cursor -- 16 tools for read and write |
 | **Autonomous Scans** | Runs every 3 hours automatically. Only alerts if issues found |
 
 ## Tech Stack
 
-- **Elastic Agent Builder** -- Custom agent with 10 tools and a 6-step SRE investigation protocol
+- **Elastic Agent Builder** -- Custom agent with 22 tools (3 ES|QL + 3 Index Search + 16 MCP) and a 6-step SRE investigation protocol
 - **ES|QL** -- Parameterized time-series queries for anomaly detection, error analysis, deploy correlation
 - **Index Search** -- Semantic search across deployment history, past incidents, runbooks
 - **Elastic Workflows** -- Multi-step incident creation + Slack webhook notification
-- **MCP Server** -- Node.js/Express server exposing 9 tools via Model Context Protocol
+- **MCP Server** -- Node.js/Express server exposing 16 tools (11 action + 5 read) via Model Context Protocol
 - **Elasticsearch Serverless** -- 5 indices with 9,470+ documents of observability data
 - **Amazon Bedrock (Claude Sonnet)** -- LLM connector for agent reasoning
 - **@slack/bolt** -- Socket Mode for real-time two-way Slack integration
@@ -151,6 +168,7 @@ Optional (for multi-channel):
 - `SLACK_WEBHOOK_URL` -- Incident notifications
 - `SLACK_BOT_TOKEN` + `SLACK_APP_TOKEN` -- Two-way Slack bot
 - `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` -- Two-way Telegram bot
+- `GITHUB_TOKEN` + `GITHUB_REPO` -- GitHub issue creation for agent-to-agent collaboration
 
 ## Demo Scenario
 
@@ -190,7 +208,7 @@ apollo/
     teardown.js                 # Clean up all resources
   mcp-server/
     server.js                   # MCP server + Telegram bot + Slack bot
-    package.json                # @slack/bolt, express, @modelcontextprotocol/sdk
+    package.json                # @slack/bolt, express, dotenv
   data/
     apollo-logo-with-text.png   # Apollo branding
     apollo-icon-512x512.png     # Agent icon

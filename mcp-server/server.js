@@ -1,5 +1,5 @@
 /**
- * Apollo MCP Server v3
+ * Apollo MCP Server v4
  *
  * Features:
  * 1. MCP action tools (Telegram, Slack, incident records, rollback)
@@ -165,7 +165,7 @@ const TOOLS = [
   {
     name: "execute_rollback",
     description:
-      "Execute a service rollback via the CI/CD pipeline. Records the rollback as a deployment in Elasticsearch, notifies Slack and Telegram with before/after versions, and returns the deployment record. Use this when a rollback has been recommended and approved.",
+      "Simulate executing a service rollback via the CI/CD pipeline. Records the rollback as a deployment in Elasticsearch, notifies Slack and Telegram with before/after versions, and returns the deployment record. In production, this would trigger the actual CI/CD rollback command. Use this when a rollback has been recommended and approved.",
     inputSchema: {
       type: "object",
       properties: {
@@ -193,7 +193,7 @@ const TOOLS = [
   {
     name: "create_jira_ticket",
     description:
-      "Create a Jira ticket for incident tracking. Auto-fills title, description with root cause analysis, affected services, remediation steps, and severity-based priority. Posts the ticket link to Slack and Telegram.",
+      "Create a simulated Jira ticket for incident tracking. Generates a ticket record in Elasticsearch with auto-filled title, description with root cause analysis, affected services, remediation steps, and severity-based priority. Posts the ticket summary to Slack and Telegram. In production, this would call the Jira REST API to create a real ticket.",
     inputSchema: {
       type: "object",
       properties: {
@@ -211,7 +211,7 @@ const TOOLS = [
   {
     name: "create_pagerduty_incident",
     description:
-      "Create a PagerDuty incident and page the on-call engineer. Sets severity, assigns to the correct escalation policy, and includes root cause and recommended actions in the incident details.",
+      "Create a simulated PagerDuty incident and page the on-call engineer. Generates an incident record in Elasticsearch with severity, escalation policy, root cause, and recommended actions. Notifies Slack and Telegram. In production, this would call the PagerDuty Events API to trigger a real page.",
     inputSchema: {
       type: "object",
       properties: {
@@ -603,17 +603,23 @@ async function executeRollback(params) {
 
   let deployId = null;
   if (ELASTIC_URL && ELASTIC_API_KEY) {
-    const res = await fetch(`${ELASTIC_URL}/deployments/_doc`, {
-      method: "POST",
-      headers: {
-        Authorization: `ApiKey ${ELASTIC_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(deployDoc),
-    });
-    if (res.ok) {
-      const result = await res.json();
-      deployId = result._id;
+    try {
+      const res = await fetch(`${ELASTIC_URL}/deployments/_doc`, {
+        method: "POST",
+        headers: {
+          Authorization: `ApiKey ${ELASTIC_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(deployDoc),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        deployId = result._id;
+      } else {
+        console.error(`Failed to index rollback deployment: ${res.status}`);
+      }
+    } catch (err) {
+      console.error(`Failed to index rollback deployment: ${err.message}`);
     }
   }
 
@@ -739,19 +745,24 @@ async function createJiraTicket(params) {
       `---`,
       `*Auto-created by Apollo SRE Agent*`,
     ].join("\n"),
-    url: `https://yourcompany.atlassian.net/browse/${ticketKey}`,
+    url: `https://yourcompany.atlassian.net/browse/${ticketKey}`, // simulated -- wire up Jira REST API for production
   };
 
   // Index in Elasticsearch for tracking
   if (ELASTIC_URL && ELASTIC_API_KEY) {
-    await fetch(`${ELASTIC_URL}/jira-tickets/_doc`, {
-      method: "POST",
-      headers: {
-        Authorization: `ApiKey ${ELASTIC_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ "@timestamp": new Date().toISOString(), ...ticket }),
-    });
+    try {
+      const res = await fetch(`${ELASTIC_URL}/jira-tickets/_doc`, {
+        method: "POST",
+        headers: {
+          Authorization: `ApiKey ${ELASTIC_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ "@timestamp": new Date().toISOString(), ...ticket }),
+      });
+      if (!res.ok) console.error(`Failed to index Jira ticket: ${res.status}`);
+    } catch (err) {
+      console.error(`Failed to index Jira ticket: ${err.message}`);
+    }
   }
 
   // Notify Slack
@@ -812,19 +823,24 @@ async function createPagerDutyIncident(params) {
     recommended_action: params.recommended_action || "See Apollo investigation for details",
     created_at: new Date().toISOString(),
     created_by: "Apollo SRE Agent",
-    url: `https://yourcompany.pagerduty.com/incidents/${incidentId}`,
+    url: `https://yourcompany.pagerduty.com/incidents/${incidentId}`, // simulated -- wire up PagerDuty Events API for production
   };
 
   // Index in Elasticsearch
   if (ELASTIC_URL && ELASTIC_API_KEY) {
-    await fetch(`${ELASTIC_URL}/pagerduty-incidents/_doc`, {
-      method: "POST",
-      headers: {
-        Authorization: `ApiKey ${ELASTIC_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ "@timestamp": new Date().toISOString(), ...incident }),
-    });
+    try {
+      const res = await fetch(`${ELASTIC_URL}/pagerduty-incidents/_doc`, {
+        method: "POST",
+        headers: {
+          Authorization: `ApiKey ${ELASTIC_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ "@timestamp": new Date().toISOString(), ...incident }),
+      });
+      if (!res.ok) console.error(`Failed to index PagerDuty incident: ${res.status}`);
+    } catch (err) {
+      console.error(`Failed to index PagerDuty incident: ${err.message}`);
+    }
   }
 
   // Notify Slack
@@ -926,20 +942,26 @@ async function generatePostmortem(params) {
   let kibanaLink = null;
 
   if (ELASTIC_URL && ELASTIC_API_KEY) {
-    const res = await fetch(`${ELASTIC_URL}/postmortems/_doc`, {
-      method: "POST",
-      headers: {
-        Authorization: `ApiKey ${ELASTIC_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postmortem),
-    });
-    if (res.ok) {
-      const result = await res.json();
-      docId = result._id;
-      if (KIBANA_URL) {
-        kibanaLink = `${KIBANA_URL}/app/discover#/?_a=(dataSource:(type:dataView),query:(query_string:(query:'_id:${docId}')))&_g=(time:(from:now-7d,to:now))`;
+    try {
+      const res = await fetch(`${ELASTIC_URL}/postmortems/_doc`, {
+        method: "POST",
+        headers: {
+          Authorization: `ApiKey ${ELASTIC_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postmortem),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        docId = result._id;
+        if (KIBANA_URL) {
+          kibanaLink = `${KIBANA_URL}/app/discover#/?_a=(dataSource:(type:dataView),query:(query_string:(query:'_id:${docId}')))&_g=(time:(from:now-7d,to:now))`;
+        }
+      } else {
+        console.error(`Failed to index postmortem: ${res.status}`);
       }
+    } catch (err) {
+      console.error(`Failed to index postmortem: ${err.message}`);
     }
   }
 
@@ -1017,14 +1039,19 @@ async function updateStatusPage(params) {
 
   // Index in Elasticsearch
   if (ELASTIC_URL && ELASTIC_API_KEY) {
-    await fetch(`${ELASTIC_URL}/status-page/_doc`, {
-      method: "POST",
-      headers: {
-        Authorization: `ApiKey ${ELASTIC_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(update),
-    });
+    try {
+      const res = await fetch(`${ELASTIC_URL}/status-page/_doc`, {
+        method: "POST",
+        headers: {
+          Authorization: `ApiKey ${ELASTIC_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(update),
+      });
+      if (!res.ok) console.error(`Failed to index status update: ${res.status}`);
+    } catch (err) {
+      console.error(`Failed to index status update: ${err.message}`);
+    }
   }
 
   // Notify Slack

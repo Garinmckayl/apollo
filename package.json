@@ -21,7 +21,6 @@
   "license": "MIT",
   "dependencies": {
     "@elastic/elasticsearch": "^9.0.0",
-    "@modelcontextprotocol/sdk": "^1.26.0",
     "dotenv": "^16.4.7"
   },
   "engines": {
